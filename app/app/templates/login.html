@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="py-20">
+    <div class="container mx-auto px-4">
+        <div class="max-w-md mx-auto bg-gray-800 p-8 rounded-lg shadow-lg">
+            <h1 class="text-3xl font-bold text-center mb-6">Login to Your Account</h1>
+            <form method="POST" action="{{ url_for('main.login') }}">
+                {{ form.hidden_tag() }}
+            
+                <div class="mb-4">
+                    <label for="email" class="block text-sm font-medium mb-2">Email Address</label>
+                    {{ form.email(class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500") }}
+                    {% if form.email.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.email.errors[0] }}</p>
+                    {% endif %}
+                </div>
+            
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium mb-2">Password</label>
+                    {{ form.password(class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500") }}
+                    {% if form.password.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.password.errors[0] }}</p>
+                    {% endif %}
+                </div>
+            
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">Login</button>
+            </form>
+            
+            <p class="text-center mt-6">
+                Don't have an account? <a href="{{ url_for('main.signup') }}" class="text-blue-500 hover:underline">Sign Up</a>
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}

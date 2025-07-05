@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="title">Payment Successful!</h1>
+    
+{% if api_key %}
+        <div class="success-message">
+            <p class="api-key-label">Your API Key:</p>
+            <p class="api-key-value">{{ api_key }}</p>
+            <p class="success-description">{{ message }}</p>
+        </div>
+{% else %}
+        <div class="success-message">
+            <p class="success-description">{{ message }}</p>
+        </div>
+{% endif %}
+    
+    <a href="{{ url_for('main.index') }}" class="cta-button">Go to Homepage</a>
+</div>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Payment Successful!</h2>
+<p>Your API Key: <strong>{{ api_key }}</strong></p>
+<p>Keep this key safe. You'll need it to access the API.</p>
+<a href="{{ url_for('main.index') }}">Go to Homepage</a>
+{% endblock %}

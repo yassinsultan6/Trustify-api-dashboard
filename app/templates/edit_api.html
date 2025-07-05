@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="title">Edit an API</h1>
+            <!-- Update the action URL to include the api_id -->
+            <form method="POST" action="{{ url_for('main.edit_api', api_id=api.id) }}">
+
+               <!-- Name Field -->
+       <label for="name">Name</label>
+       <input type="text" id="name" name="name" value="{{ api.name }}" required>
+
+               <!-- Price Field -->
+       <label for="price">Price</label>
+       <input id="price" name="price" type="number" step="0.01" min="0.01" value="{{ api.price }}" required>
+
+               <!-- Save Changes Button -->
+       <button type="submit" class="cta-button">Save Changes</button>
+            </form>
+        </div>
+{% endblock %}

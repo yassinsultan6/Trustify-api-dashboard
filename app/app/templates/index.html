@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="py-20" id="home">
+    <div class="container mx-auto text-center">
+        <h1 class="text-4xl font-bold mb-4">Protect Your Platform from Spam</h1>
+        <p class="text-lg mb-8">Our API helps you filter out spam content from social media platforms, emails, and e-commerce websites.</p>
+        <img alt="Illustration of a shield protecting various digital platforms from spam" class="mx-auto mb-8" height="400" src="{{ url_for('static', filename='images/NE_LOGO.png') }}">
+        <a class="bg-green-800 text-white py-2 px-4 rounded" href="{{ url_for('main.login') }}">Get Started</a>
+    </div>
+</section>
+{% endblock %}

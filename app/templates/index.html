@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block page_buttons %}
+<div class="page-buttons" style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px; padding: 0 20px;">
+    {% if 'user_id' in session or 'admin_id' in session %}
+        <button onclick="showLogoutConfirmation()" class="cta-button" style="background-color: #e63946;">Logout</button>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="title">Protect Your Platform from Spam</h1>
+    <p class="hero-description">Our API helps you filter out spam content from social media platforms, emails, and e-commerce websites.</p>
+    <a href="{{ url_for('main.login') }}" class="cta-button">Get Started</a>
+    </div>
+{% endblock %}

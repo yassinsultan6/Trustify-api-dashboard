@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="py-20">
+    <div class="container mx-auto text-center">
+        <h2 class="text-3xl font-bold mb-8">Pricing</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {% for api in apis %}
+            {% set usd_price = (api.price / 51) | round(2) %}
+            <div class="bg-gray-700 p-6 rounded shadow">
+                <h3 class="text-xl font-bold mb-4">{{ api.name }}</h3>
+                <p class="text-2xl font-bold mb-4">${{ usd_price }} USD</p>
+
+                {% if 'user_id' in session %}
+                    <div id="paypal-button-container-{{ api.id }}"></div>
+                {% else %}
+                    <p class="text-red-500">
+                        Please <a href="{{ url_for('main.login') }}" class="text-blue-500 hover:underline">log in</a> to purchase this package.
+                    </p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% if 'user_id' in session %}
+    <!-- Load PayPal SDK -->
+    <script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD"></script>
+
+    <!-- Your script should come AFTER the PayPal SDK is loaded -->
+    <script>
+        function renderButtons() {
+            const apis = {{ apis_json | tojson }};  // Use the serialized list
+            apis.forEach(api => {
+                paypal.Buttons({
+                    createOrder: function(data, actions) {
+                        return fetch('/create-order', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                api_id: api.id,
+                                price: (api.price / 51).toFixed(2)
+                            })
+                        }).then(res => res.json())
+                          .then(order => order.id);
+                    },
+                    onApprove: function(data, actions) {
+                        return fetch(`/capture-order/${data.orderID}`, {
+                            method: 'POST'
+                        }).then(res => res.json())
+                          .then(details => {
+                            return fetch('/payment-success', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    orderID: data.orderID,
+                                    api_id: api.id
+                                })
+                            });
+                        }).then(res => res.json())
+                          .then(response => {
+                            alert(response.message);
+                        });
+                    },
+                    onError: function(err) {
+                        console.error('PayPal error:', err);
+                        alert('An error occurred during the transaction.');
+                    }
+                }).render(`#paypal-button-container-${api.id}`);
+            });
+        }
+    
+        document.addEventListener("DOMContentLoaded", function() {
+            renderButtons();
+        });
+    </script>
+    
+    
+{% endif %}
+
+
+{% endblock %}

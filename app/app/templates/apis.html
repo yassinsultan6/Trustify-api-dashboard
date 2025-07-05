@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    #mb {
+        margin-bottom: -3.2%;
+        margin-top: 5%;
+    }
+    #p{
+        margin-bottom: 12.7%;
+        margin-top: 9%;
+    }
+</style>
+<section class="py-20">
+    <div class="container mx-auto text-center">
+        <h2 class="text-3xl font-bold mb-8">Available APIs</h2>
+        
+        {% if api_list %}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center">
+                {% for api in api_list %}
+                    <div class="bg-gray-700 p-8 rounded shadow flex flex-col items-center justify-between h-full">
+                        <h3 class="text-xl font-bold mb-4">{{ api.name }}</h3>
+                        <p class="text-2xl font-bold mb-4">{{ api.price }} EGP</p>
+                        
+                        {% if 'admin_id' in session %}
+                            <!-- Center the buttons inside the box -->
+                            <div class="flex space-x-4 justify-center mt-4">
+                                <a href="{{ url_for('main.edit_api', api_id=api.id) }}" 
+                                   class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">
+                                    Edit
+                                </a>
+                                <a href="{{ url_for('main.delete_api', api_id=api.id) }}" 
+                                   class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-300">
+                                    Delete
+                                </a>
+                            </div>
+                        {% else %}
+                            <p class="text-red-500">Please <a href="{{ url_for('main.login') }}" class="text-blue-500 hover:underline">log in</a> to manage this API.</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-lg text-gray-400 mt-8" id="p">No APIs available.</p>
+        {% endif %}
+        
+        {% if 'admin_id' in session %}
+            <!-- Add API Button -->
+            <div id="mb">
+                <a href="{{ url_for('main.add_api') }}" 
+                   class="bg-green-600 text-white py-2 px-6 rounded-lg hover:bg-green-700 transition duration-300">
+                    Add API
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

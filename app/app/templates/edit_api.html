@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="py-20">
+    <div class="container mx-auto px-4">
+        <div class="max-w-md mx-auto bg-gray-800 p-8 rounded-lg shadow-lg">
+            <h1 class="text-3xl font-bold text-center mb-6">Edit an API</h1>
+            <!-- Update the action URL to include the api_id -->
+            <form method="POST" action="{{ url_for('main.edit_api', api_id=api.id) }}">
+
+               <!-- Name Field -->
+               <div class="mb-4">
+                   <label for="name" class="block text-sm font-medium mb-2">Name</label>
+                   <input type="text" id="name" name="name" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500" value="{{ api.name }}" required>
+               </div>
+
+               <!-- Price Field -->
+               <div class="mb-4">
+                   <label for="price" class="block text-sm font-medium mb-2">Price</label>
+                   <input id="price" name="price" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500" type="number" step="0.01" min="0.01" value="{{ api.price }}" required>
+               </div>
+
+               <!-- Save Changes Button -->
+               <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">Save Changes</button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="title">Available APIs</h1>
+        
+        {% if api_list %}
+        <div class="apis-grid">
+                {% for api in api_list %}
+                <div class="api-card">
+                    <h3>{{ api.name }}</h3>
+                    <p class="api-price">{{ api.price }} EGP</p>
+                        
+                        {% if 'admin_id' in session %}
+                        <div class="api-actions">
+                            <a href="{{ url_for('main.edit_api', api_id=api.id) }}" class="cta-button">Edit</a>
+                            <a href="{{ url_for('main.delete_api', api_id=api.id) }}" class="cta-button" style="background-color: #e63946;">Delete</a>
+                            </div>
+                        {% else %}
+                        <p class="api-login-message">Please <a href="{{ url_for('main.login') }}">log in</a> to manage this API.</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+        <p class="text-center">No APIs available.</p>
+        {% endif %}
+        
+        {% if 'admin_id' in session %}
+        <div class="add-api-section">
+            <a href="{{ url_for('main.add_api') }}" class="cta-button" style="background-color: #28a745;">Add API</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block page_buttons %}
+<div class="page-buttons" style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px; padding: 0 20px;">
+    {% if 'user_id' in session or 'admin_id' in session %}
+        <button onclick="showLogoutConfirmation()" class="cta-button" style="background-color: #e63946;">Logout</button>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="title">Pricing</h1>
+    
+    {% if apis %}
+        <div class="pricing-grid">
+            {% for api in apis %}
+            <div class="pricing-card">
+                <h3 class="pricing-title">{{ api.name }}</h3>
+                <p class="pricing-price">{{ api.price }} EGP</p> 
+
+                {% if 'user_id' in session %}
+                    {% if api.id in purchased_api_ids %}
+                        <div class="already-purchased">
+                            <span class="purchase-status" onclick="getApiKey({{ api.id }}, '{{ api.name }}')" style="cursor: pointer;">✓ Already Purchased - Click to View API Key</span>
+                        </div>
+                    {% else %}
+                        <a class="cta-button pricing-button" 
+                       href="{{ url_for('main.paymob_checkout', api_id=api.id, price=api.price) }}">
+                        Pay Now with Paymob
+                    </a>
+                    {% endif %}
+                {% else %}
+                    <p class="pricing-login-message">
+                        Please <a href="{{ url_for('main.login') }}">log in</a> to purchase this package.
+                    </p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-center">No pricing packages available.</p>
+    {% endif %}
+    </div>
+
+<!-- API Key Modal -->
+<div id="apiKeyModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px;">
+        <span class="close" onclick="closeApiKeyModal()">&times;</span>
+        <h2>🔑 Your API Key</h2>
+        <div id="apiKeyContent">
+            <div class="api-info">
+                <h3 id="apiName"></h3>
+                <p><strong>API Key:</strong></p>
+                <div class="api-key-display">
+                    <code id="apiKeyValue"></code>
+                    <button onclick="copyApiKey()" class="copy-btn">Copy</button>
+                </div>
+                <p id="purchaseDate"></p>
+                <div class="api-key-notice">
+                    <p><strong>Important:</strong></p>
+                    <ul>
+                        <li>Keep this API key secure and confidential</li>
+                        <li>Use this key in the <code>X-API-KEY</code> header for API requests</li>
+                        <li>Do not share this key with others</li>
+                        <li>If compromised, contact support immediately</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    color: #000000;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #000;
+}
+
+.api-info h3 {
+    color: #2e8bff;
+    margin-bottom: 20px;
+}
+
+.api-key-display {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    margin: 15px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.api-key-display code {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: #2e8bff;
+    font-weight: bold;
+    word-break: break-all;
+    flex: 1;
+    margin-right: 10px;
+}
+
+.copy-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.copy-btn:hover {
+    background-color: #218838;
+}
+
+.api-key-notice {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.api-key-notice ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.api-key-notice li {
+    margin: 5px 0;
+    color: #856404;
+}
+
+.purchase-status:hover {
+    color: #2e8bff;
+    text-decoration: underline;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
+<script>
+    // Track if user is logged in
+    const isLoggedIn = {% if 'user_id' in session %}true{% else %}false{% endif %};
+    
+    // Track if we're navigating to a payment page
+    let isNavigatingToPayment = false;
+    
+    // Mark payment links to prevent logout confirmation
+    document.addEventListener('DOMContentLoaded', function() {
+        const paymentLinks = document.querySelectorAll('.pricing-button');
+        paymentLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                isNavigatingToPayment = true;
+            });
+        });
+    });
+    
+    // Listen for back button press only
+    window.addEventListener('popstate', function(event) {
+        if (isLoggedIn && !isNavigatingToPayment) {
+            event.preventDefault();
+            showLogoutConfirmation();
+        }
+        isNavigatingToPayment = false; // Reset flag
+    });
+    
+    // Override the browser's back button behavior
+    history.pushState(null, null, location.href);
+    
+    // Function to show logout confirmation
+    function showLogoutConfirmation() {
+        document.getElementById('logoutModal').style.display = 'flex';
+    }
+    
+    // Function to hide logout confirmation
+    function hideLogoutConfirmation() {
+        document.getElementById('logoutModal').style.display = 'none';
+    }
+    
+    // Function to perform logout
+    function performLogout() {
+        window.location.href = "{{ url_for('main.logout') }}";
+    }
+    
+    // Function to get API key
+    function getApiKey(apiId, apiName) {
+        fetch(`/get-api-key/${apiId}`)
+            .then(response => {
+                if (!response.ok) {
+                    // Get the error message from the JSON response
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    // This case might be redundant now but good for safety
+                    alert('Error: ' + data.error);
+                    return;
+                }
+                
+                document.getElementById('apiName').textContent = data.api_name;
+                document.getElementById('apiKeyValue').textContent = data.api_key;
+                
+                if (data.purchase_date) {
+                    const purchaseDate = new Date(data.purchase_date).toLocaleDateString();
+                    document.getElementById('purchaseDate').textContent = `Purchased on: ${purchaseDate}`;
+                } else {
+                    document.getElementById('purchaseDate').textContent = '';
+                }
+                
+                document.getElementById('apiKeyModal').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(`Error fetching API key: ${error.message}`);
+            });
+    }
+    
+    // Function to close API key modal
+    function closeApiKeyModal() {
+        document.getElementById('apiKeyModal').style.display = 'none';
+    }
+    
+    // Function to copy API key
+    function copyApiKey() {
+        const apiKey = document.getElementById('apiKeyValue').textContent;
+        navigator.clipboard.writeText(apiKey).then(function() {
+            const copyBtn = document.querySelector('.copy-btn');
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = 'Copied!';
+            copyBtn.style.backgroundColor = '#28a745';
+            
+            setTimeout(function() {
+                copyBtn.textContent = originalText;
+                copyBtn.style.backgroundColor = '#28a745';
+            }, 2000);
+        }).catch(function(err) {
+            console.error('Could not copy text: ', err);
+            alert('Could not copy API key. Please copy it manually.');
+        });
+    }
+    
+    // Close modal when clicking outside of it
+    window.onclick = function(event) {
+        const logoutModal = document.getElementById('logoutModal');
+        const apiKeyModal = document.getElementById('apiKeyModal');
+        
+        if (event.target == logoutModal) {
+            hideLogoutConfirmation();
+        }
+        
+        if (event.target == apiKeyModal) {
+            closeApiKeyModal();
+        }
+    }
+</script>
+{% endblock %}
